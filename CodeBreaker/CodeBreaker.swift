@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-typealias Peg = Color
+typealias Peg = String
 
 struct CodeBreaker {
     var maseterCode: Code = Code(kind: .master)
@@ -15,8 +15,13 @@ struct CodeBreaker {
     var attempts: [Code]  = [Code]()
     let pegsChoices: [Peg]
     
-    init(pegsChoices: [Peg] = [.red, .green, .blue, .yellow]) {
+    init(pegsChoices: [Peg] = ["🥹", "😆", "😃", "🤩", "🥳", "😨"]) {
         self.pegsChoices = pegsChoices
+        
+        let pegCount = Int.random(in: 3...6)
+        maseterCode.pegs = Array(repeating: Code.missing, count: pegCount)
+        guess.pegs = Array(repeating: Code.missing, count: pegCount)
+        
         maseterCode.randomize(from: pegsChoices)
         print(maseterCode)
     }
@@ -36,13 +41,17 @@ struct CodeBreaker {
         attempt.kind = .attempt(guess.match(against: maseterCode))
         attempts.append(attempt)
     }
+    
+    mutating func reset() {
+        self = CodeBreaker(pegsChoices: pegsChoices)
+    }
 }
 
-struct Code {
+struct Code: Equatable {
     var kind: Kind
-    var pegs: [Peg] = Array(repeating: Code.missing, count: 4)
+    var pegs: [Peg] = Array(repeating: Code.missing, count: 6)
 
-    static let missing: Peg = .clear
+    static let missing: Peg = ""
     
     enum Kind: Equatable {
         case master
@@ -52,7 +61,7 @@ struct Code {
     }
     
     mutating func randomize(from pegChoices: [Peg]) {
-        for index in pegChoices.indices {
+        for index in pegs.indices {
             pegs[index] = pegChoices.randomElement() ?? Code.missing
         }
     }
@@ -75,7 +84,7 @@ struct Code {
             }
         }
         
-        for index in pegs.indices {
+        for index in pegs.indices where results[index] != .exact {
             if let matchIndex = pegsToMatch.firstIndex(of: pegs[index]) {
                 results[index] = .inexact
                 pegsToMatch.remove(at: matchIndex)

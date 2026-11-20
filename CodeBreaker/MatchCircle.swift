@@ -15,7 +15,8 @@ enum Match: CaseIterable {
 
 struct MatchCircle: View {
     var matches: [Match]
-
+    var num: Int = 6
+    
     var body: some View {
         HStack {
             VStack {
@@ -26,6 +27,10 @@ struct MatchCircle: View {
                 matchMarker(peg: 2)
                 matchMarker(peg: 3)
             }
+            VStack {
+                matchMarker(peg: 4)
+                matchMarker(peg: 5)
+            }
         }
     }
 
@@ -35,11 +40,14 @@ struct MatchCircle: View {
 
         return Circle()
             .fill(exactCount > peg ? Color.primary : Color.clear)
-            .strokeBorder(foundCount > peg ? Color.primary : Color.clear, lineWidth: 2)
+            .strokeBorder(
+                foundCount > peg ? Color.primary : Color.gray.opacity(0.3),
+                lineWidth: 2
+            )
             .aspectRatio(1, contentMode: .fit)
     }
 }
 
 #Preview {
-    MatchCircle(matches: [.exact, .inexact, .exact, .nomatch])
+    MatchCircle(matches: [.exact, .inexact, .exact, .nomatch, .exact, .nomatch])
 }

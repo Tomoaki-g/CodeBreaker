@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CodeBreakerView: View {
-    @State var game = CodeBreaker(pegsChoices: [.brown, .yellow, .orange, .black])
+    @State var game = CodeBreaker()
     
     var body: some View {
         VStack {
@@ -18,14 +18,17 @@ struct CodeBreakerView: View {
             view(for: game.maseterCode)
             
             ScrollView {
-                view(for: game.guess)
-                
-                ForEach(game.attempts.indices.reversed(), id: \.self) { index in
-                    view(for: game.attempts[index])
+                VStack(spacing: 4) {
+                    view(for: game.guess)
+                    
+                    ForEach(game.attempts.indices.reversed(), id: \.self) { index in
+                        view(for: game.attempts[index])
+                    }
                 }
             }
         }
-        .padding()
+        .padding(.horizontal, 8)
+        .padding(.vertical)
     }
     
     var guessButton: some View {
@@ -34,13 +37,14 @@ struct CodeBreakerView: View {
                 game.attemptGuess()
             }
         }
-        .font(.system(size: 80))
-        .minimumScaleFactor(0.1)
+        .font(.system(size: 24))
+        .fixedSize()
+        .disabled(game.guess.pegs.contains(Code.missing))
     }
     
     var restartButton: some View {
         Button {
-            game.attempts = []
+            game.reset()
         } label: {
             Text("Restart")
                 .font(.system(size: 30))
@@ -58,18 +62,25 @@ struct CodeBreakerView: View {
     }
 
     func view(for code: Code) -> some View {
-        HStack {
+        HStack(spacing: 4) {
             ForEach(code.pegs.indices, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 10)
+                    .fill(.clear)
                     .overlay {
                         if code.pegs[index] == Code.missing {
                             RoundedRectangle(cornerRadius: 10)
                                 .strokeBorder(.gray)
+                        } else {
+                            Text(code.pegs[index])
+                                .font(.system(size: 40))
+                                .minimumScaleFactor(0.1)
+                                .lineLimit(1)
                         }
                     }
-                    .contentShape(Rectangle())
                     .aspectRatio(1, contentMode: .fit)
-                    .foregroundStyle(code.pegs[index])
+                    .frame(minWidth: 0, maxWidth: 75)
+                    .frame(height: code.kind == .master ? 75 : 55)
+                    .contentShape(Rectangle())
                     .onTapGesture {
                         if code.kind == .guess {
                             game.changeGuessPeg(at: index)
@@ -77,13 +88,18 @@ struct CodeBreakerView: View {
                     }
             }
 
-            MatchCircle(matches: code.matches)
-                .overlay {
-                    if code.kind == .guess {
-                        guessButton
-                    }
+            Spacer(minLength: 0)
+
+            Group {
+                if code.kind == .guess {
+                    guessButton
+                } else {
+                    MatchCircle(matches: code.matches, num: code.pegs.count)
                 }
+            }
+            .frame(width: 70, height: 55, alignment: .trailing)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
